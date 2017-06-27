@@ -52,7 +52,7 @@ class NetCDFHandler(BaseHandler):
                                                         )))))
 
                 # shortcuts
-                vars = source.variables
+                vars_ = source.variables
                 dims = source.dimensions
 
                 # build dataset
@@ -68,9 +68,9 @@ class NetCDFHandler(BaseHandler):
                         break
 
                 # add grids
-                grids = [var for var in vars if var not in dims]
+                grids = [var for var in vars_ if var not in dims]
                 for grid in grids:
-                    self.dataset[grid] = GridType(grid, attrs(vars[grid]))
+                    self.dataset[grid] = GridType(grid, attrs(vars_[grid]))
                     # add array
                     self.dataset[grid][grid] = BaseType(grid,
                                                         LazyVariable(
@@ -78,18 +78,18 @@ class NetCDFHandler(BaseHandler):
                                                             grid,
                                                             grid,
                                                             self.filepath),
-                                                        vars[grid].dimensions,
-                                                        attrs(vars[grid]))
+                                                        vars_[grid].dimensions,
+                                                        attrs(vars_[grid]))
                     # add maps
-                    for dim in vars[grid].dimensions:
-                        self.dataset[grid][dim] = BaseType(dim, vars[dim][:],
+                    for dim in vars_[grid].dimensions:
+                        self.dataset[grid][dim] = BaseType(dim, vars_[dim][:],
                                                            None,
-                                                           attrs(vars[dim]))
+                                                           attrs(vars_[dim]))
 
                 # add dims
                 for dim in dims:
-                    self.dataset[dim] = BaseType(dim, vars[dim][:], None,
-                                                 attrs(vars[dim]))
+                    self.dataset[dim] = BaseType(dim, vars_[dim][:], None,
+                                                 attrs(vars_[dim]))
         except Exception as exc:
             raise
             message = 'Unable to open file %s: %s' % (filepath, exc)
