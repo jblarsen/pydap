@@ -82,14 +82,22 @@ class NetCDFHandler(BaseHandler):
                                                         attrs(vars_[grid]))
                     # add maps
                     for dim in vars_[grid].dimensions:
-                        self.dataset[grid][dim] = BaseType(dim, vars_[dim][:],
+                        if dim not in vars_:
+                            length = len(dims[dim])
+                            var = np.arange(length)
+                            attr = {}
+                        else:
+                            var = vars_[dim][:]
+                            attr = attrs(vars_[dim])
+                        self.dataset[grid][dim] = BaseType(dim, var,
                                                            None,
-                                                           attrs(vars_[dim]))
+                                                           attr)
 
                 # add dims
-                for dim in dims:
+                dimvars = [dim for dim in dims if dim in vars_]
+                for dim in dimvars:
                     self.dataset[dim] = BaseType(dim, vars_[dim][:], None,
-                                                 attrs(vars_[dim]))
+                                                     attrs(vars_[dim]))
         except Exception as exc:
             raise
             message = 'Unable to open file %s: %s' % (filepath, exc)
@@ -155,8 +163,10 @@ class LazyVariable:
 
     def __getitem__(self, key):
         with netcdf_file(self.filepath, 'r') as source:
-            return (np.asarray(source[self.path][key])
-                    .astype(self.dtype).reshape(self._reshape))
+            source.set_auto_maskandscale(False)
+            return source[self.path][key]
+            #return (np.asarray(source[self.path][key])
+            #        .astype(self.dtype).reshape(self._reshape))
 
     def reshape(self, *args):
         if len(args) > 1:
@@ -184,4 +194,4 @@ if __name__ == "__main__":
     from werkzeug.serving import run_simple
 
     application = NetCDFHandler(sys.argv[1])
-    run_simple('localhost', 8001, application, use_reloader=True)
+    run_simple('0.0.0.0', 8001, application, use_reloader=True)
