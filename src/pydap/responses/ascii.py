@@ -85,5 +85,5 @@ def _basetype(var, printname=True):
         for block in var.data:
             for indexes, value in zip(np.ndindex(block.shape), block.flat):
                 yield "{indexes} {value}\n".format(
-                    indexes="[" + "][".join([str(idx) for idx in indexes]) + "]",
-                    value=encode(value))
+                    indexes="[" + "][".join([str(idx) for idx in indexes]) + \
+                    "]", value=encode(value))
