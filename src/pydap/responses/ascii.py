@@ -82,7 +82,8 @@ def _basetype(var, printname=True):
     if not getattr(var, "shape", ()):
         yield encode(var.data)
     else:
-        for indexes, value in zip(np.ndindex(var.shape), var.data.flat):
-            yield "{indexes} {value}\n".format(
-                indexes="[" + "][".join([str(idx) for idx in indexes]) + "]",
-                value=encode(value))
+        for block in var.data:
+            for indexes, value in zip(np.ndindex(block.shape), block.flat):
+                yield "{indexes} {value}\n".format(
+                    indexes="[" + "][".join([str(idx) for idx in indexes]) + "]",
+                    value=encode(value))
