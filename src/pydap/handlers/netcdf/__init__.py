@@ -51,11 +51,11 @@ class NetCDFHandler(BaseHandler):
                                                         [ST_MTIME])
                                                         )))))
 
-                # shortcuts
+                # Shortcuts
                 vars_ = source.variables
                 dims = source.dimensions
 
-                # build dataset
+                # Build dataset
                 name = os.path.split(filepath)[1]
                 self.dataset = DatasetType(name,
                                            attributes=dict(
@@ -67,11 +67,22 @@ class NetCDFHandler(BaseHandler):
                         }
                         break
 
-                # add grids
+                # Add dimensions to dataset
+                for dim in dims:
+                    if dim not in vars_:
+                        length = len(dims[dim])
+                        var = np.arange(length)
+                        attr = {}
+                    else:
+                        var = vars_[dim][:]
+                        attr = attrs(vars_[dim])
+                    self.dataset[dim] = BaseType(dim, var, None, attr)
+
+                # Add grids (variables)
                 grids = [var for var in vars_ if var not in dims]
                 for grid in grids:
                     self.dataset[grid] = GridType(grid, attrs(vars_[grid]))
-                    # add array
+                    # Add array
                     self.dataset[grid][grid] = BaseType(grid,
                                                         LazyVariable(
                                                             source,
@@ -80,24 +91,10 @@ class NetCDFHandler(BaseHandler):
                                                             self.filepath),
                                                         vars_[grid].dimensions,
                                                         attrs(vars_[grid]))
-                    # add maps
+                    # Add maps
                     for dim in vars_[grid].dimensions:
-                        if dim not in vars_:
-                            length = len(dims[dim])
-                            var = np.arange(length)
-                            attr = {}
-                        else:
-                            var = vars_[dim][:]
-                            attr = attrs(vars_[dim])
-                        self.dataset[grid][dim] = BaseType(dim, var,
-                                                           None,
-                                                           attr)
+                        self.dataset[grid][dim] = self.dataset[dim]
 
-                # add dims
-                dimvars = [dim for dim in dims if dim in vars_]
-                for dim in dimvars:
-                    self.dataset[dim] = BaseType(dim, vars_[dim][:], None,
-                                                     attrs(vars_[dim]))
         except Exception as exc:
             raise
             message = 'Unable to open file %s: %s' % (filepath, exc)
