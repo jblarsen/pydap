@@ -43,23 +43,20 @@ class NetCDFHandler(BaseHandler):
         self.filepath = filepath
         try:
             with netcdf_file(self.filepath, 'r') as source:
+                last_modified = formatdate(time.mktime(
+                        time.localtime(os.stat(filepath)[ST_MTIME])))
                 self.additional_headers.append(('Last-modified',
-                                               (formatdate(
-                                                time.mktime(
-                                                    time.localtime(
-                                                        os.stat(filepath)
-                                                        [ST_MTIME])
-                                                        )))))
+                                               last_modified))
 
                 # Shortcuts
                 vars_ = source.variables
                 dims = source.dimensions
+                ncattrs = dict(NC_GLOBAL=attrs(source))
+                ncattrs['Last-modified'] = last_modified
 
                 # Build dataset
                 name = os.path.split(filepath)[1]
-                self.dataset = DatasetType(name,
-                                           attributes=dict(
-                                                      NC_GLOBAL=attrs(source)))
+                self.dataset = DatasetType(name, attributes=ncattrs)
                 for dim in dims:
                     if dims[dim] is None:
                         self.dataset.attributes['DODS_EXTRA'] = {
