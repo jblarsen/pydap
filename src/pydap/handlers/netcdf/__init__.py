@@ -159,10 +159,11 @@ class LazyVariable:
 
     def __getitem__(self, key):
         with netcdf_file(self.filepath, 'r') as source:
-            source.set_auto_maskandscale(False)
-            return source[self.path][key]
-            #return (np.asarray(source[self.path][key])
-            #        .astype(self.dtype).reshape(self._reshape))
+            # Avoid applying scale_factor, see
+            # https://github.com/pydap/pydap/issues/190
+            source.set_auto_scale(False)
+            return (np.asarray(source[self.path][key])
+                    .astype(self.dtype).reshape(self._reshape))
 
     def reshape(self, *args):
         if len(args) > 1:
