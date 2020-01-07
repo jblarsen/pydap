@@ -181,8 +181,9 @@ class LazyVariable:
             # Avoid applying scale_factor, see
             # https://github.com/pydap/pydap/issues/190
             source.set_auto_scale(False)
-            return (np.asarray(source[self.path][key])
-                    .astype(self.dtype).reshape(self._reshape))
+            return source[self.path][key]
+            #return (np.asarray(source[self.path][key])
+            #        .astype(self.dtype).reshape(self._reshape))
 
     def reshape(self, *args):
         if len(args) > 1:
